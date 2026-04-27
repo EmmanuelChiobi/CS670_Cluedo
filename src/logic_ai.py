@@ -20,7 +20,7 @@ class CluedoAI:
         queue = deque([(current_room, [current_room])])
         visited = {current_room}
         
-        all_rooms = list(self.map_data.keys())
+        # all_rooms = list(self.map_data.keys())
         fallback_room = None
 
         while queue:
