@@ -1,21 +1,29 @@
-import random
+from src.engine import CluedoEngine
 
-class Card:
-    def __init__(self, name, card_type):
-        self.name = name
-        self.card_type = card_type # 'Suspect', 'Weapon', or 'Room'
+def main():
+    print("Welcome to Cluedo!")
+    game = CluedoEngine(["Alice", "Bob", "Charlie"])
+    
+    # Simple demo loop
+    current_turn = 0
+    game_over = False
+    
+    while not game_over:
+        player = game.players[current_turn]
+        print(f"\nIt's {player.name}'s turn.")
+        
+        # In a real app, you'd take user input here
+        # For demo: Alice suggests Scarlett in the Kitchen with the Dagger
+        sug, card = game.process_suggestion(player, "Miss Scarlett", "Dagger", "Kitchen")
+        
+        if card:
+            print(f"{sug.name} showed you the {card.name} card.")
+        else:
+            print("No one could disprove your suggestion.")
+        
+        # Increment turn
+        current_turn = (current_turn + 1) % len(game.players)
+        if current_turn == 0: game_over = True # End demo after 1 round
 
-    def __repr__(self):
-        return f"{self.name} ({self.card_type})"
-
-class Player:
-    def __init__(self, name, is_ai=False):
-        self.name = name
-        self.is_ai = is_ai
-        self.hand = []
-        self.notebook = [] # Tracks seen cards
-
-    def show_card(self, suggestion):
-        # Return a card if it matches the suggestion
-        matching = [c for c in self.hand if c.name in suggestion]
-        return random.choice(matching) if matching else None
+if __name__ == "__main__":
+    main()
