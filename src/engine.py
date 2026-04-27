@@ -44,30 +44,33 @@ class CluedoEngine:
     def play_turn(self, player):
         print(f"\n--- {player.name}'s Turn ---")
         
-        # STEP 1: Deduction Check
-        # The AI checks if it has enough info to win
+        # A. Always check for deduction first
         accusation = player.logic.make_deduction()
         if accusation:
-            print(f"!!! {player.name} is making an ACCUSATION: {accusation}")
+            print(f"!!! {player.name} ACCUSES: {accusation}")
             return self.check_accusation(accusation)
 
-        # STEP 2: Movement (BFS)
-        # AI finds the shortest path to a room it hasn't investigated
-        current_room = getattr(player, 'location', 'Hall') 
-        path = player.logic.find_nearest_unseen_room(current_room)
+        # B. Movement (BFS)
+        current_loc = getattr(player, 'location', 'Hall')
+        path = player.logic.find_nearest_unseen_room(current_loc)
         
         if path:
-            new_room = path[-1]
-            player.location = new_room
-            print(f"{player.name} moved to the {new_room} via path: {path}")
+            player.location = path[-1]
+            print(f"{player.name} moved to the {player.location}")
             
-            # STEP 3: Suggestion
-            # AI suggests the current room and two other unknown items
-            suspect = random.choice([c.name for c in self.all_cards if c.card_type == 'Suspect'])
-            weapon = random.choice([c.name for c in self.all_cards if c.card_type == 'Weapon'])
+            # C. Intelligent Suggestion
+            # Don't pick random cards; pick cards that are still 'Unknown' in the notebook!
+            unknown_suspects = [c.name for c in self.all_cards 
+                                if c.card_type == 'Suspect' and player.logic.notebook[c.name] == 'Unknown']
+            unknown_weapons = [c.name for c in self.all_cards 
+                                if c.card_type == 'Weapon' and player.logic.notebook[c.name] == 'Unknown']
             
-            print(f"{player.name} suggests: {suspect} in the {new_room} with the {weapon}")
-            self.process_suggestion(player, suspect, weapon, new_room)
+            # Fallback to random if the AI knows all suspects or weapons (rare)
+            s_guess = random.choice(unknown_suspects) if unknown_suspects else "Miss Scarlett"
+            w_guess = random.choice(unknown_weapons) if unknown_weapons else "Dagger"
+            
+            print(f"{player.name} suggests: {s_guess} in {player.location} with {w_guess}")
+            self.process_suggestion(player, s_guess, w_guess, player.location)
 
     def process_suggestion(self, suggester, suspect, weapon, room):
         suggestion_names = [suspect, weapon, room]

@@ -17,27 +17,30 @@ class CluedoAI:
         self.notebook[card_name] = status
 
     def find_nearest_unseen_room(self, current_room):
-        """
-        Uses BFS to find the shortest path to a room 
-        that the AI hasn't ruled out yet.
-        """
         queue = deque([(current_room, [current_room])])
         visited = {current_room}
+        
+        all_rooms = list(self.map_data.keys())
+        fallback_room = None
 
         while queue:
             node, path = queue.popleft()
 
-            # Goal Test: Is this a room we haven't 'seen' yet?
+            # Goal: A room I haven't ruled out yet
             if self.notebook.get(node) == 'Unknown':
                 return path
+            
+            # Save the first room we find as a fallback if everything is 'Seen'
+            if not fallback_room and node != current_room:
+                fallback_room = path
 
-            # Expansion: Check adjacent rooms
             for neighbor in self.map_data.get(node, []):
                 if neighbor not in visited:
                     visited.add(neighbor)
                     queue.append((neighbor, path + [neighbor]))
         
-        return None
+        # If no 'Unknown' rooms exist, just move to a random adjacent room
+        return fallback_room
 
     def make_deduction(self):
         """
